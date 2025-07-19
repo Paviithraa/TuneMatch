@@ -1,0 +1,67 @@
+const sounds = ['sound1.mp3', 'sound2.mp3', 'sound3.mp3', 'sound4.mp3'];
+const gameBoard = document.getElementById('game-board');
+const statusText = document.getElementById('status');
+
+let cards = [...sounds, ...sounds]; // duplicate for pairs
+let firstCard = null;
+let secondCard = null;
+let lockBoard = false;
+let matchedPairs = 0;
+
+shuffle(cards);
+
+cards.forEach((sound, index) => {
+  const card = document.createElement('div');
+  card.classList.add('card');
+  card.dataset.sound = sound;
+  card.dataset.index = index;
+  card.addEventListener('click', flipCard);
+  gameBoard.appendChild(card);
+});
+
+function shuffle(array) {
+  array.sort(() => 0.5 - Math.random());
+}
+
+function flipCard() {
+  if (lockBoard || this.classList.contains('matched') || this === firstCard) return;
+
+  playSound(this.dataset.sound);
+  this.style.background = '#ffeaa7';
+
+  if (!firstCard) {
+    firstCard = this;
+    return;
+  }
+
+  secondCard = this;
+  lockBoard = true;
+
+  if (firstCard.dataset.sound === secondCard.dataset.sound) {
+    // Match!
+    firstCard.classList.add('matched');
+    secondCard.classList.add('matched');
+    matchedPairs++;
+    resetBoard();
+
+    if (matchedPairs === sounds.length) {
+      statusText.textContent = "🎉 You matched all sounds!";
+    }
+  } else {
+    // Not a match
+    setTimeout(() => {
+      firstCard.style.background = '#74b9ff';
+      secondCard.style.background = '#74b9ff';
+      resetBoard();
+    }, 1000);
+  }
+}
+
+function resetBoard() {
+  [firstCard, secondCard, lockBoard] = [null, null, false];
+}
+
+function playSound(filename) {
+  const audio = new Audio('sounds/' + filename);
+  audio.play();
+}
